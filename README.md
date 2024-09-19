@@ -22,17 +22,17 @@ Instructions:
 
 Features:
 
--Neon Aesthetic: Emissive materials and vibrant colors create a neon glow effect.
--Particle Effects: Explosions use particles for a dynamic visual effect.
--Responsive Controls: Smooth player movement and shooting mechanics.
--Score and Lives Display: HUD shows current score and remaining lives.
+- Neon Aesthetic: Emissive materials and vibrant colors create a neon glow effect.
+- Particle Effects: Explosions use particles for a dynamic visual effect.
+- Responsive Controls: Smooth player movement and shooting mechanics.
+- Score and Lives Display: HUD shows current score and remaining lives.
 
 Feel free to enhance the game further by adding:
 
--Advanced Particle Effects: Use shaders for more complex visuals.
--Alien Lasers: Make aliens shoot back at the player.
--Power-ups: Introduce items that modify player abilities.
--Background Elements: Add a moving starfield or nebula.
+- Advanced Particle Effects: Use shaders for more complex visuals.
+- Alien Lasers: Make aliens shoot back at the player.
+- Power-ups: Introduce items that modify player abilities.
+- Background Elements: Add a moving starfield or nebula.
 
 Note: This code is designed for simplicity and ease of use. It's a single file that you can modify or expand as needed.
 
