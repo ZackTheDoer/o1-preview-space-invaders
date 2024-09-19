@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Neon Space Invaders</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #000; }
+        #scoreboard {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: #00ff00;
+            font-family: Arial, sans-serif;
+            font-size: 20px;
+            z-index: 1;
+            text-shadow: 0 0 10px #00ff00;
+        }
+    </style>
+</head>
+<body>
+    <div id="scoreboard">
+        Score: <span id="score">0</span> &nbsp; Lives: <span id="lives">3</span>
+    </div>
+
+    <!-- Include three.js via CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <!-- Main JavaScript code -->
+    <script>
+        // Basic setup
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(
+            75, window.innerWidth / window.innerHeight, 0.1, 1000
+        );
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+        camera.position.z = 20;
+
+        // Variables
+        let player, aliens = [], lasers = [], particles = [];
+        let moveLeft = false, moveRight = false, canShoot = true;
+        let score = 0, lives = 3, gameOver = false;
+        let alienSpeed = 0.1, alienDirection = 1;
+
+        // Create player
+        function createPlayer() {
+            const geometry = new THREE.BoxGeometry(1, 1, 1);
+            const material = new THREE.MeshPhongMaterial({ color: 0x00ff00, emissive: 0x00ff00 });
+            player = new THREE.Mesh(geometry, material);
+            player.position.y = -8;
+            scene.add(player);
+        }
+
+        // Create aliens
+        function createAliens() {
+            const alienGeometry = new THREE.BoxGeometry(1, 1, 1);
+            const alienMaterial = new THREE.MeshPhongMaterial({ color: 0xff00ff, emissive: 0xff00ff });
+            const rows = 5, cols = 11;
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    const alien = new THREE.Mesh(alienGeometry, alienMaterial);
+                    alien.position.set(
+                        j * 1.5 - cols * 0.75,
+                        i * 1.5,
+                        0
+                    );
+                    aliens.push(alien);
+                    scene.add(alien);
+                }
+            }
+        }
+
+        // Handle input
+        document.addEventListener('keydown', event => {
+            if (event.code === 'ArrowLeft') moveLeft = true;
+            if (event.code === 'ArrowRight') moveRight = true;
+            if (event.code === 'Space') shootLaser();
+        });
+        document.addEventListener('keyup', event => {
+            if (event.code === 'ArrowLeft') moveLeft = false;
+            if (event.code === 'ArrowRight') moveRight = false;
+        });
+
+        // Shoot laser
+        function shootLaser() {
+            if (!canShoot || gameOver) return;
+            canShoot = false;
+            const laserGeometry = new THREE.BoxGeometry(0.2, 1, 0.2);
+            const laserMaterial = new THREE.MeshPhongMaterial({ color: 0x00ffff, emissive: 0x00ffff });
+            const laser = new THREE.Mesh(laserGeometry, laserMaterial);
+            laser.position.set(player.position.x, player.position.y + 1, 0);
+            lasers.push(laser);
+            scene.add(laser);
+            setTimeout(() => { canShoot = true; }, 300);
+        }
+
+        // Create explosion particles
+        function createExplosion(x, y) {
+            const particleGeometry = new THREE.BufferGeometry();
+            const particleCount = 30;
+            const positions = new Float32Array(particleCount * 3);
+            for (let i = 0; i < particleCount; i++) {
+                positions[i * 3] = x;
+                positions[i * 3 + 1] = y;
+                positions[i * 3 + 2] = 0;
+            }
+            particleGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            const particleMaterial = new THREE.PointsMaterial({
+                color: 0xffff00,
+                size: 0.5,
+                transparent: true,
+                opacity: 1,
+                blending: THREE.AdditiveBlending
+            });
+            const particleSystem = new THREE.Points(particleGeometry, particleMaterial);
+            particleSystem.life = 0;
+            particles.push(particleSystem);
+            scene.add(particleSystem);
+        }
+
+        // Update particles
+        function updateParticles(delta) {
+            particles.forEach((p, index) => {
+                p.life += delta;
+                if (p.life > 1) {
+                    scene.remove(p);
+                    particles.splice(index, 1);
+                } else {
+                    const positions = p.geometry.attributes.position.array;
+                    for (let i = 0; i < positions.length; i += 3) {
+                        positions[i] += (Math.random() - 0.5) * 0.2;
+                        positions[i + 1] += (Math.random() - 0.5) * 0.2;
+                    }
+                    p.geometry.attributes.position.needsUpdate = true;
+                    p.material.opacity -= delta;
+                }
+            });
+        }
+
+        // Update game
+        function update(delta) {
+            if (gameOver) return;
+
+            // Move player
+            if (moveLeft) player.position.x -= 0.2;
+            if (moveRight) player.position.x += 0.2;
+            player.position.x = THREE.MathUtils.clamp(player.position.x, -14, 14);
+
+            // Move lasers
+            lasers.forEach((laser, index) => {
+                laser.position.y += 0.5;
+                if (laser.position.y > 15) {
+                    scene.remove(laser);
+                    lasers.splice(index, 1);
+                }
+            });
+
+            // Move aliens
+            let switchDirection = false;
+            aliens.forEach(alien => {
+                alien.position.x += alienSpeed * alienDirection;
+                if (alien.position.x > 14 || alien.position.x < -14) switchDirection = true;
+            });
+            if (switchDirection) {
+                alienDirection *= -1;
+                aliens.forEach(alien => {
+                    alien.position.y -= 1;
+                    if (alien.position.y < -8) gameOver = true;
+                });
+            }
+
+            // Check collisions
+            lasers.forEach((laser, lIndex) => {
+                aliens.forEach((alien, aIndex) => {
+                    if (laser.position.distanceTo(alien.position) < 0.7) {
+                        // Remove alien and laser
+                        scene.remove(alien);
+                        aliens.splice(aIndex, 1);
+                        scene.remove(laser);
+                        lasers.splice(lIndex, 1);
+                        // Create explosion
+                        createExplosion(alien.position.x, alien.position.y);
+                        // Update score
+                        score += 10;
+                        document.getElementById('score').textContent = score;
+                        // Increase difficulty
+                        alienSpeed += 0.005;
+                    }
+                });
+            });
+
+            // Update particles
+            updateParticles(delta);
+
+            // Check game over
+            if (gameOver || lives <= 0) {
+                alert('Game Over!');
+                location.reload();
+            }
+        }
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+        const pointLight = new THREE.PointLight(0xffffff, 1);
+        pointLight.position.set(0, 10, 10);
+        scene.add(pointLight);
+
+        // Animation loop
+        const clock = new THREE.Clock();
+        function animate() {
+            requestAnimationFrame(animate);
+            const delta = clock.getDelta();
+            update(delta);
+            renderer.render(scene, camera);
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Initialize game
+        createPlayer();
+        createAliens();
+        animate();
+    </script>
+</body>
+</html>
