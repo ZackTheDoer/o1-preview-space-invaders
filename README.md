@@ -2,7 +2,7 @@
 Space invaders in a single index.html file created with o1-preview-space-invaders in a single prompt.
 
 ## Prompt
-"Create a space invaders game using three.js. Make it look fantastic with lots of particle effects. Package it tightly in a single file so I can copy and paste it into a file."
+"Generate a complete Space Invaders game with a vibrant neon aesthetic and heavy particle effects using three.js, all included in a single HTML file ready to copy and paste."
 
 Certainly! Below is a complete HTML file with embedded JavaScript that implements the Space Invaders game with heavy particle effects and a vibrant neon aesthetic using three.js. You can copy and paste this code into a file named index.html and open it in your browser to play the game.
 
