@@ -9,7 +9,7 @@ Certainly! Below is a complete HTML file with embedded JavaScript that implement
 ## Response
 Certainly! Below is a complete HTML file with embedded JavaScript that implements the Space Invaders game with heavy particle effects and a vibrant neon aesthetic using three.js. You can copy and paste this code into a file named index.html and open it in your browser to play the game.
 
-<code>
+CODE (index.html in repo)
 
 Instructions:
 
